@@ -1,0 +1,30 @@
+# -*- coding: utf-8 -*-
+# all available properties in serverless.yml when provider is aws
+# https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/
+
+service:
+  name: dupe-remove
+
+provider:
+  name: aws
+  runtime: python2.7
+  stage: dev
+  region: us-east-1
+  profile: sanhe
+  memorySize: 128
+  timeout: 3
+  deploymentBucket:
+    name: sanhe-learn-aws-lambda-with-sls-deploy
+  deploymentPrefix: serverless
+  role: lambda-exeution-role-arn-edit-later
+  versionFunctions: false
+
+package:
+  artifact: ./build/lambda/source.zip
+
+functions:
+  my_func:
+    handler: learn_awslambda.handlers.my_func.handler
+    description:
+    layers:
+      - lambda-layer-arn-edit-later
