@@ -1,4 +1,7 @@
+rolex
+pandas          # csv read and write
 pathlib_mate    # autopep8 your code
 twine>=1.5.0    # make distribution archive
+
 # AWS
 boto3           # AWS Python SDK

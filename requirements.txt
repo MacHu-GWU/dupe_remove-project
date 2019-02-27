@@ -1,0 +1,4 @@
+six
+attrs
+sqlalchemy
+psycopg2-binary

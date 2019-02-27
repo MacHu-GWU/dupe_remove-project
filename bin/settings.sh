@@ -11,9 +11,9 @@ github_repo_name="dupe_remove-project"
 
 # Python
 package_name="dupe_remove"
-py_ver_major="2"
-py_ver_minor="7"
-py_ver_micro="13"
+py_ver_major="3"
+py_ver_minor="6"
+py_ver_micro="2"
 use_pyenv="N" # "Y" or "N"
 supported_py_versions="3.6.2" # e.g: "2.7.13 3.6.2"
 
