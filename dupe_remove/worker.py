@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 
+"""
+Implement remove duplicate data worker.
+"""
+
 from six import integer_types, string_types, text_type as str
-from datetime import date, datetime
+from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table, Column
-from sqlalchemy import select, text, func, and_
+from sqlalchemy import select, text, func
 
 
 class Worker(object):
-    def __init__(self, conn_str=None, engine=None, table_name=None, id_col_name=None, sort_col_name=None):
+    def __init__(self,
+                 conn_str=None,
+                 engine=None,
+                 table_name=None,
+                 id_col_name=None,
+                 sort_col_name=None):
         self.conn_str = conn_str
         if engine is None:
             self.engine = create_engine(conn_str)
@@ -175,24 +184,33 @@ class Worker(object):
             table_name_distinct=self.table_name_distinct,
         ))
 
-    def remove_duplicate(self, lower, upper):
-        """
-
-        :param lower:
-        :param upper:
-        :return:
-        """
+    def delete_temp_table_data(self):
         with self.engine.begin() as connection:
             connection.execute(self.table_dupe_ids.delete())
             connection.execute(self.table_distinct.delete())
 
+    def drop_temp_table(self):
+        self.table_dupe_ids.drop(self.engine, checkfirst=True)
+        self.table_name_distinct.drop(self.engine, checkfirst=True)
+
+    def remove_duplicate(self, lower, upper, _raise_error=False):
+        """
+        Remove duplicate data that ``sort_col BETWEEN lower AND upper``.
+
+        :param _raise_error: bool, if True, will raise an error right after
+            the dupes data are removed from main table and not insert back.
+            This flag is for testing the transaction only. The entire
+            ``remove_duplicate()`` should be atomic.
+        """
+        self.delete_temp_table_data()
+        with self.engine.begin() as connection:
             connection.execute(self.sql_insert_dupe_ids(lower, upper))
             connection.execute(self.sql_insert_distinct_copy(lower, upper))
             connection.execute(self.sql_remove_dupe_rows(lower, upper))
+            if _raise_error:
+                raise Exception("Manually raise error to test atomic")
             connection.execute(self.sql_insert_back())
-
-            connection.execute(self.table_dupe_ids.delete())
-            connection.execute(self.table_distinct.delete())
+        self.delete_temp_table_data()
 
     def count_duplicates(self, lower=None, upper=None):
         """

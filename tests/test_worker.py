@@ -27,30 +27,30 @@ class TestWorker(object):
                 engine=engine, table_name=table_name,
                 id_col_name=id_col_name, sort_col_name=sort_col_name,
             )
-            print(worker.count_duplicates())
+            assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
 
-    # def test_remove_duplicate(self):
-    #     if test_db_ready_flag:
-    #         worker = Worker(
-    #             engine=engine, table_name=table_name,
-    #             id_col_name=id_col_name, sort_col_name=sort_col_name,
-    #         )
-    #         assert worker.sort_key_min_max() == (1, 1000)
-    #         assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
-    #
-    #         st = time.clock()
-    #         n_period = 10
-    #         gap = n_event / n_period
-    #         for ith in range(n_period):
-    #             lower, upper = ith * gap, (ith + 1) * gap
-    #             worker.remove_duplicate(lower, upper)
-    #         elapsed = time.clock() - st
-    #
-    #         assert worker.count_duplicates() == (n_distinct, n_distinct, 0)
-    #
-    #         print("elapsed: %.6f seconds" % elapsed)
-    #     else:
-    #         print("Worker.remove_duplicate are not tested!")
+    def test_remove_duplicate(self):
+        if test_db_ready_flag:
+            worker = Worker(
+                engine=engine, table_name=table_name,
+                id_col_name=id_col_name, sort_col_name=sort_col_name,
+            )
+            assert worker.sort_key_min_max() == (1, n_distinct)
+            assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
+
+            st = time.clock()
+            n_period = 10
+            gap = n_event / n_period
+            for ith in range(n_period):
+                lower, upper = ith * gap, (ith + 1) * gap
+                worker.remove_duplicate(lower, upper)
+            elapsed = time.clock() - st
+
+            assert worker.count_duplicates() == (n_distinct, n_distinct, 0)
+
+            print("elapsed: %.6f seconds" % elapsed)
+        else:
+            print("Worker.remove_duplicate are not tested!")
 
 
 if __name__ == "__main__":

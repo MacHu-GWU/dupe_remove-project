@@ -1,16 +1,23 @@
 # -*- coding: utf-8 -*-
 
-import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytest
-from dupe_remove.scheduler import *
+from dupe_remove.scheduler import Scheduler
+
 
 class TestScheduleOptimizer(object):
     def test(self):
-        min_value = datetime(2017, 10, 1)
-        max_value = datetime(2019, 7, 1)
-        n_rows = 1250000000
+        cron_freq_in_sec = 3600
+        start = datetime(2018, 1, 1)
+        delta = timedelta(days=30)
+        bin_size = 12
 
+        scheduler = Scheduler(cron_freq_in_sec, start, delta, bin_size)
+        bins = scheduler.bins
+        lower, upper = scheduler.lower_and_upper
+
+        assert len(bins) == bin_size
+        assert (lower, upper) in bins
 
 
 if __name__ == "__main__":

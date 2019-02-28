@@ -36,37 +36,23 @@ def create_test_data(n_rows, dupe_perc, id_col_name, sort_col_name):
     return test_data, n_total, n_distinct, n_dupes
 
 
-n_event = 1000
-dupe_perc = 0.2
+n_event = 100
+dupe_perc = 0.3
 event_data, n_total, n_distinct, n_dupes = create_test_data(
     n_event, dupe_perc, id_col_name, sort_col_name
 )
 
 try:
     engine = create_engine(conn_str)
-
-
-    def drop_all_tables():
-        try:
-            t_events.drop(engine)
-        except:
-            pass
-
-        try:
-            ind_events.drop(engine)
-        except:
-            pass
-
-
-    # drop_all_tables() # reset the database
+    t_events.drop(engine, checkfirst=True)
     metadata.create_all(engine)
-
-    if engine.execute(
-            select([func.count(t_events.columns[id_col_name])])
-    ).fetchall()[0][0] == 0:
+    n_rows_in_table_now = engine.execute(
+        select([func.count(t_events.columns[id_col_name])])
+    ).fetchall()[0][0]
+    if n_rows_in_table_now == 0:
         engine.execute(t_events.insert(), event_data)
 
     test_db_ready_flag = True
-except:
+except Exception as e:
     engine = None
     test_db_ready_flag = False

@@ -5,3 +5,4 @@ twine>=1.5.0    # make distribution archive
 
 # AWS
 boto3           # AWS Python SDK
+s3iotools==0.0.1
