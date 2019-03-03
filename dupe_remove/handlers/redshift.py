@@ -2,16 +2,15 @@
 
 
 def handler(event, context):
-    from sqlalchemy_mate import EngineCreator
+    from sqlalchemy_mate import EngineCreator, test_connection
     from datetime import datetime, timedelta
     from dupe_remove.tests import table_name, id_col_name, sort_col_name
     from dupe_remove import Scheduler, Worker, Handler
-
-    engine_creator = EngineCreator.from_s3_json(
-        bucket_name="login.gov-dev-sanhe",
-        key="db/redshift-analytics-dev.json",
-    )
+    from dupe_remove.logger import logger
+    
+    engine_creator = EngineCreator.from_env(prefix="DEV_DB", kms_decrypt=True)
     engine = engine_creator.create_redshift()
+    test_connection(engine, 6)
 
     cron_freq_in_seconds = 300
     start = datetime(2018, 1, 1)

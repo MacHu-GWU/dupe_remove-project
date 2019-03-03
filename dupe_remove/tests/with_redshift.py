@@ -1,25 +1,31 @@
 # -*- coding: utf-8 -*-
 
-"""
-table.events:
-
-- id: string, random uuid
-- time: datetime, from 2018-01-01 to 2018-12-31 23:59:59
-
-10,000,000 distinct rows, 10% duplicate.
-
-This takes several minutes
-"""
-
 import uuid
 import pandas as pd
 from datetime import datetime
 from s3iotools.io.dataframe import S3Dataframe
 
 
-def create_test_data(id_col_name, sort_col_name,
-                     start, n_month, n_rows_each_month, dupe_perc,
-                     s3_resource, bucket_name):
+def create_test_data(id_col_name,
+                     sort_col_name,
+                     start,
+                     n_month,
+                     n_rows_each_month,
+                     dupe_perc,
+                     s3_resource,
+                     bucket_name):
+    """
+    Create test data for redshift, write data to gzip compressed csv on S3.
+
+    Recommend Setting:
+
+    - start = datetime(2018, 1, 1)
+    - n_month = 12
+    - n_rows_each_month = 1000000
+    - dupe_perc = 0.1
+
+    This takes several minutes
+    """
     start_eod = datetime(year=start.year, month=start.month,
                          day=start.day, hour=23, minute=59, second=59)
 

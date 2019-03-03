@@ -8,10 +8,6 @@ In the test, we assume:
 """
 
 from __future__ import division
-import random
-import uuid
-from datetime import datetime, timedelta
-from six import text_type as str
 from sqlalchemy import MetaData, Table, Column
 from sqlalchemy import String, DateTime
 
@@ -25,37 +21,3 @@ t_events = Table(
     Column(id_col_name, String),
     Column(sort_col_name, DateTime),
 )
-
-
-def create_test_data(n_distinct, dupe_perc, id_col_name, sort_col_name):
-    """
-
-    :param n_rows:
-    :param dupe_perc:
-    :param id_col_name:
-    :param sort_col_name:
-    :return:
-    """
-    n_dupes = int(n_distinct * dupe_perc)
-    n_total = n_distinct + n_dupes
-
-    start_time = datetime(2018, 1, 1)
-    seconds_in_year = 365 * 24 * 3600
-    delta = timedelta(seconds=seconds_in_year / n_distinct)
-
-    test_data = [
-        {
-            id_col_name: str(uuid.uuid1()),
-            sort_col_name: start_time + (i - 1) * delta
-        }
-        for i in range(1, n_distinct + 1)
-    ]
-    test_data.extend(random.sample(test_data, n_dupes))
-    random.shuffle(test_data)
-    return test_data, n_total, n_distinct, n_dupes
-
-
-if __name__ == "__main__":
-    test_data, n_total, n_distinct, n_dupes = create_test_data(
-        100, 0.2, id_col_name, sort_col_name)
-    print(test_data)

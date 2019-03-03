@@ -2,7 +2,7 @@
 
 
 def handler(event, context):
-    from sqlalchemy_mate import EngineCreator
+    from sqlalchemy_mate import EngineCreator, test_connection
     from datetime import datetime, timedelta
     from dupe_remove.tests import table_name, id_col_name, sort_col_name
     from dupe_remove import Scheduler, Worker, Handler
@@ -12,6 +12,7 @@ def handler(event, context):
         key="db/postgres-elephant-dev.json",
     )
     engine = engine_creator.create_postgresql_psycopg2()
+    test_connection(engine, 6)
 
     cron_freq_in_seconds = 300
     start = datetime(2018, 1, 1)
@@ -25,7 +26,3 @@ def handler(event, context):
                     sort_col_name=sort_col_name)
     real_handler = Handler(scheduler, worker)
     real_handler.handler(event, context)
-
-
-if __name__ == "__main__":
-    handler(None, None)

@@ -12,7 +12,7 @@ provider:
   region: us-west-2
   profile: identitysandbox.gov
   memorySize: 128
-  timeout: 60
+  timeout: 30
   deploymentBucket:
     name: login.gov-dev-sanhe
   deploymentPrefix: serverless
@@ -23,14 +23,12 @@ package:
   artifact: ./build/lambda/source.zip
 
 functions:
-  sanhehu_elephant_db_t_events:
-    handler: dupe_remove.handlers.sanhehu_elephant_db_t_events.handler
-    description:
+  postgres:
+    handler: dupe_remove.handlers.postgres.handler
     layers:
-      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:1
+      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:2
 
-  identity_analytics_dev_redshift:
-    handler: dupe_remove.handlers.identity_analytics_dev_redshift.handler
-    timeout: 300
+  redshift:
+    handler: dupe_remove.handlers.redshift.handler
     layers:
-      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:1
+      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:2

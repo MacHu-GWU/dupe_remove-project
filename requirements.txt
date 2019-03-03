@@ -4,4 +4,4 @@ sqlalchemy
 sqlalchemy-redshift
 psycopg2-binary
 loggerFactory==0.0.5
-sqlalchemy_mate==0.0.6
+sqlalchemy_mate==0.0.7

@@ -4,14 +4,19 @@ from datetime import datetime
 import pytest
 from dupe_remove.tests import (
     table_name, id_col_name, sort_col_name, metadata, t_events,
-    create_test_data,
 )
-from dupe_remove.tests.with_postgres import engine
+from dupe_remove.tests.with_postgres import create_test_data
 from dupe_remove.worker import Worker
 
 
 class TestWorker(object):
     def test_everything(self):
+        from sqlalchemy_mate import EngineCreator
+
+        ec = EngineCreator(host="0.0.0.0", port=5432, database="postgres",
+                           username="postgres", password="password")
+
+        engine = ec.create_postgresql_psycopg2()
         metadata.create_all(engine)
 
         engine.execute(t_events.delete())
