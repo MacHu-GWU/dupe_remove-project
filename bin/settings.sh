@@ -19,7 +19,6 @@ supported_py_versions="3.6.2" # e.g: "2.7.13 3.6.2"
 
 
 #--- Doc Build
-
 rtd_project_name="dupe_remove"
 
 # AWS profile name for hosting doc on S3
@@ -36,11 +35,11 @@ s3_bucket_doc_host="sanherabbit.com"
 # AWS profile name for deploy lambda function
 # should be defined in ~/.aws/credentials
 # read https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html for more information
-aws_profile_for_lambda="sanhe"
+aws_profile_for_lambda="identitysandbox.gov"
 
 # deployment package file will be upload to:
 # "s3://${s3_bucket_lambda_deploy}/lambda/${github_account}/${github_repo_name}/${package_name}-${package_version}.zip"
-s3_bucket_lambda_deploy="sanhe-learn-aws-lambda-with-sls-deploy"
+s3_bucket_lambda_deploy="login.gov-dev-sanhe"
 
 
 # Docker

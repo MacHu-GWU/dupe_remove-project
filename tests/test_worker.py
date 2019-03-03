@@ -1,56 +1,53 @@
 # -*- coding: utf-8 -*-
 
-import time
 from datetime import datetime
 import pytest
 from dupe_remove.tests import (
-    test_db_ready_flag, engine, table_name, id_col_name, sort_col_name,
-    n_event, n_total, n_distinct, n_dupes,
+    table_name, id_col_name, sort_col_name, metadata, t_events,
+    create_test_data,
 )
+from dupe_remove.tests.with_postgres import engine
 from dupe_remove.worker import Worker
 
 
 class TestWorker(object):
-    def test_encode(self):
-        assert Worker.encode(1) == "1"
-        assert Worker.encode(-1) == "-1"
-        assert Worker.encode(3.14) == "3.14"
-        assert Worker.encode(-3.14) == "-3.14"
-        assert Worker.encode("Hello") == "'Hello'"
-        assert Worker.encode("this is a 'word!'") == "'this is a ''word!'''"
-        assert Worker.encode('this is a "word!"') == "'this is a \"word!\"'"
-        assert Worker.encode(datetime(2000, 1, 1)) == "'2000-01-01 00:00:00'"
+    def test_everything(self):
+        metadata.create_all(engine)
 
-    def test_count_duplicates(self):
-        if test_db_ready_flag:
-            worker = Worker(
-                engine=engine, table_name=table_name,
-                id_col_name=id_col_name, sort_col_name=sort_col_name,
-            )
-            assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
+        engine.execute(t_events.delete())
 
-    def test_remove_duplicate(self):
-        if test_db_ready_flag:
-            worker = Worker(
-                engine=engine, table_name=table_name,
-                id_col_name=id_col_name, sort_col_name=sort_col_name,
-            )
-            assert worker.sort_key_min_max() == (1, n_distinct)
-            assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
+        worker = Worker(
+            engine=engine, table_name=table_name,
+            id_col_name=id_col_name, sort_col_name=sort_col_name,
+        )
 
-            st = time.clock()
-            n_period = 10
-            gap = n_event / n_period
-            for ith in range(n_period):
-                lower, upper = ith * gap, (ith + 1) * gap
-                worker.remove_duplicate(lower, upper)
-            elapsed = time.clock() - st
+        assert worker.count_duplicates(lower=datetime(2018, 1, 1)) == (0, 0, 0)
+        assert worker.count_duplicates(upper=datetime(2019, 1, 1)) == (0, 0, 0)
+        assert worker.count_duplicates() == (0, 0, 0)
 
-            assert worker.count_duplicates() == (n_distinct, n_distinct, 0)
+        n_distinct = 1000
+        dupe_perc = 0.3
+        test_data, n_total, n_distinct, n_dupes = create_test_data(
+            n_distinct, dupe_perc, id_col_name, sort_col_name)
 
-            print("elapsed: %.6f seconds" % elapsed)
-        else:
-            print("Worker.remove_duplicate are not tested!")
+        engine.execute(t_events.insert(), test_data)
+        assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
+
+        lower = datetime(2018, 1, 1)
+        upper = datetime(2019, 1, 1)
+
+        try:
+            worker.remove_duplicate(lower, upper, _raise_error=True)
+        except InterruptedError:
+            pass
+        assert worker.count_duplicates() == (n_total, n_distinct, n_dupes)
+
+        st = datetime.now()
+        worker.remove_duplicate(lower, upper)
+        elapsed = (datetime.now() - st).total_seconds()
+
+        assert worker.count_duplicates() == (n_distinct, n_distinct, 0)
+        print("elapsed: %.6f seconds" % elapsed)
 
 
 if __name__ == "__main__":

@@ -3,28 +3,34 @@
 # https://serverless.com/framework/docs/providers/aws/guide/serverless.yml/
 
 service:
-  name: dupe-remove
+  name: dupe-remove-demo
 
 provider:
   name: aws
-  runtime: python2.7
+  runtime: python3.6
   stage: dev
-  region: us-east-1
-  profile: sanhe
+  region: us-west-2
+  profile: identitysandbox.gov
   memorySize: 128
-  timeout: 3
+  timeout: 60
   deploymentBucket:
-    name: sanhe-learn-aws-lambda-with-sls-deploy
+    name: login.gov-dev-sanhe
   deploymentPrefix: serverless
-  role: lambda-exeution-role-arn-edit-later
+  role: arn:aws:iam::894947205914:role/lambda-s3-redshift-full-access
   versionFunctions: false
 
 package:
   artifact: ./build/lambda/source.zip
 
 functions:
-  my_func:
-    handler: learn_awslambda.handlers.my_func.handler
+  sanhehu_elephant_db_t_events:
+    handler: dupe_remove.handlers.sanhehu_elephant_db_t_events.handler
     description:
     layers:
-      - lambda-layer-arn-edit-later
+      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:1
+
+  identity_analytics_dev_redshift:
+    handler: dupe_remove.handlers.identity_analytics_dev_redshift.handler
+    timeout: 300
+    layers:
+      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:1

@@ -11,32 +11,10 @@ table.events:
 This takes several minutes
 """
 
-import json
 import uuid
 import pandas as pd
-import sqlalchemy as sa
 from datetime import datetime
 from s3iotools.io.dataframe import S3Dataframe
-
-
-
-
-def create_engine(db_secret_file, db_identifier):
-    db_secret = json.load(open(db_secret_file, "r"))[db_identifier]
-    conn_str = "redshift+psycopg2://{username}:{password}@{host}:{port}/{database}".format(**db_secret)
-    engine = sa.create_engine(conn_str)
-    return engine
-
-
-def create_table(engine, table_name, id_col_name, sort_col_name):
-    metadata = sa.MetaData()
-    t_events = sa.Table(
-        table_name, metadata,
-        sa.Column(id_col_name, sa.String),
-        sa.Column(sort_col_name, sa.DateTime),
-    )
-    metadata.create_all(engine)
-    return t_events
 
 
 def create_test_data(id_col_name, sort_col_name,

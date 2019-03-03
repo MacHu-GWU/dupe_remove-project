@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division
-import logging
 from .scheduler import Scheduler
 from .worker import Worker
+from .logger import logger
 
 
 class Handler(object):
     dupe_perc_threshold = 0.0001
 
     def __init__(self, scheduler, worker):
-        if not isinstance(Scheduler):
+        if not isinstance(scheduler, Scheduler):
             raise TypeError
-        if not isinstance(Worker):
+        if not isinstance(worker, Worker):
             raise TypeError
 
         self.scheduler = scheduler
         self.worker = worker
-        self.logger = logging.getLogger("dupe remove")
+        self.logger = logger
 
     def handler(self, event, context):
         lower, upper = self.scheduler.lower_and_upper

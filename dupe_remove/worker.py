@@ -4,8 +4,6 @@
 Implement remove duplicate data worker.
 """
 
-from six import integer_types, string_types, text_type as str
-from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table, Column
 from sqlalchemy import select, text, func
 
@@ -39,7 +37,7 @@ class Worker(object):
                 Column(self.id_col.name, self.id_col.type),
             )
             self.table_dupe_ids.create(self.engine)
-        except:
+        except:  # pragma: no cover
             self.table_dupe_ids = self.metadata.tables[self.table_name_dupe_ids]
 
         try:
@@ -48,21 +46,8 @@ class Worker(object):
                 *[Column(c.name, c.type) for c in self.table.columns]
             )
             self.table_distinct.create(self.engine)
-        except:
+        except:  # pragma: no cover
             self.table_distinct = self.metadata.tables[self.table_name_distinct]
-
-    @staticmethod
-    def encode(value):
-        if isinstance(value, integer_types):
-            return str(value)
-        elif isinstance(value, float):
-            return str(value)
-        elif isinstance(value, string_types):
-            return "'%s'" % value.replace("'", "''")
-        elif isinstance(value, datetime):
-            return "'%s'" % value
-        else:
-            raise ValueError
 
     def sql_insert_dupe_ids(self, lower, upper):
         """
@@ -83,14 +68,14 @@ class Worker(object):
 
         :return: (n_total, n_distinct, n_dupes)
         """
-        return text("""
+        sql = """
             INSERT INTO {table_name_dupe_ids} ({id_col_name})
                 (
                     SELECT
                         {table_name}.{id_col_name} AS {id_col_name}
-                    FROM events
+                    FROM {table_name}
                     WHERE 
-                        {table_name}.{sort_col_name} BETWEEN {lower} AND {upper}
+                        {table_name}.{sort_col_name} BETWEEN :lower AND :upper
                     GROUP BY {id_col_name}
                     HAVING COUNT(*) > 1
                 );
@@ -99,9 +84,10 @@ class Worker(object):
             id_col_name=self.id_col_name,
             sort_col_name=self.sort_col_name,
             table_name_dupe_ids=self.table_name_dupe_ids,
-            lower=self.encode(lower),
-            upper=self.encode(upper),
-        ))
+        )
+        stmt = text(sql)
+        stmt = stmt.bindparams(lower=lower, upper=upper)
+        return stmt
 
     def sql_insert_distinct_copy(self, lower, upper):
         """
@@ -127,14 +113,14 @@ class Worker(object):
 
         :return: (n_total, n_distinct, n_dupes)
         """
-        return text("""
+        sql = """
             INSERT INTO {table_name_distinct}
             (
                 SELECT 
                     DISTINCT *
                 FROM {table_name}
                 WHERE
-                    {table_name}.{sort_col_name} BETWEEN {lower} AND {upper}
+                    {table_name}.{sort_col_name} BETWEEN :lower AND :upper
                     AND {table_name}.{id_col_name} IN(
                         SELECT {table_name_dupe_ids}.{id_col_name} AS {id_col_name}
                         FROM {table_name_dupe_ids}
@@ -146,9 +132,10 @@ class Worker(object):
             sort_col_name=self.sort_col_name,
             table_name_dupe_ids=self.table_name_dupe_ids,
             table_name_distinct=self.table_name_distinct,
-            lower=self.encode(lower),
-            upper=self.encode(upper),
-        ))
+        )
+        stmt = text(sql)
+        stmt = stmt.bindparams(lower=lower, upper=upper)
+        return stmt
 
     def sql_remove_dupe_rows(self, lower, upper):
         """
@@ -157,10 +144,10 @@ class Worker(object):
 
         :return: (n_total, n_distinct, n_dupes)
         """
-        return text("""
+        sql = """
             DELETE FROM {table_name}
             WHERE
-                {table_name}.{sort_col_name} BETWEEN {lower} AND {upper}
+                {table_name}.{sort_col_name} BETWEEN :lower AND :upper
                 AND {table_name}.{id_col_name} IN(
                     SELECT {table_name_dupe_ids}.{id_col_name} AS {id_col_name}
                     FROM {table_name_dupe_ids}
@@ -171,27 +158,33 @@ class Worker(object):
             sort_col_name=self.sort_col_name,
             table_name_dupe_ids=self.table_name_dupe_ids,
             table_name_distinct=self.table_name_distinct,
-            lower=self.encode(lower),
-            upper=self.encode(upper),
-        ))
+        )
+        stmt = text(sql)
+        stmt = stmt.bindparams(lower=lower, upper=upper)
+        return stmt
 
     def sql_insert_back(self):
-        return text("""
+        sql = """
             INSERT INTO {table_name}
             SELECT * FROM {table_name_distinct};
             """.format(
             table_name=self.table_name,
             table_name_distinct=self.table_name_distinct,
-        ))
+        )
+        return text(sql)
 
-    def delete_temp_table_data(self):
+    def delete_temp_table_data(self):  # pragma: no cover
         with self.engine.begin() as connection:
             connection.execute(self.table_dupe_ids.delete())
             connection.execute(self.table_distinct.delete())
 
+    def create_temp_table(self):
+        self.table_dupe_ids.create(self.engine, checkfirst=True)
+        self.table_distinct.create(self.engine, checkfirst=True)
+
     def drop_temp_table(self):
         self.table_dupe_ids.drop(self.engine, checkfirst=True)
-        self.table_name_distinct.drop(self.engine, checkfirst=True)
+        self.table_distinct.drop(self.engine, checkfirst=True)
 
     def remove_duplicate(self, lower, upper, _raise_error=False):
         """
@@ -202,15 +195,16 @@ class Worker(object):
             This flag is for testing the transaction only. The entire
             ``remove_duplicate()`` should be atomic.
         """
-        self.delete_temp_table_data()
+        self.drop_temp_table()
+        self.create_temp_table()
         with self.engine.begin() as connection:
             connection.execute(self.sql_insert_dupe_ids(lower, upper))
             connection.execute(self.sql_insert_distinct_copy(lower, upper))
             connection.execute(self.sql_remove_dupe_rows(lower, upper))
             if _raise_error:
-                raise Exception("Manually raise error to test atomic")
+                raise InterruptedError("Manually raise error to test atomic")
             connection.execute(self.sql_insert_back())
-        self.delete_temp_table_data()
+        self.drop_temp_table()
 
     def count_duplicates(self, lower=None, upper=None):
         """
@@ -222,30 +216,31 @@ class Worker(object):
         :return: (n_total, n_distinct, n_dupes)
         """
         where_crts = list()
+        stmt_kwargs = dict()
         if lower is not None:
             where_crts.append(
-                "{table_name}.{sort_col_name} >= {lower}".format(
+                "{table_name}.{sort_col_name} >= :lower".format(
                     table_name=self.table_name,
                     sort_col_name=self.sort_col_name,
-                    lower=self.encode(lower),
                 )
             )
+            stmt_kwargs["lower"] = lower
 
         if upper is not None:
             where_crts.append(
-                "{table_name}.{sort_col_name} <= {upper}".format(
+                "{table_name}.{sort_col_name} <= :upper".format(
                     table_name=self.table_name,
                     sort_col_name=self.sort_col_name,
-                    lower=self.encode(upper),
                 )
             )
+            stmt_kwargs["upper"] = upper
 
         if len(where_crts):
             where_clause = "WHERE {}".format(" AND ".join(where_crts))
         else:
             where_clause = ""
 
-        sql = text("""
+        sql = """
         SELECT
             COUNT(T.{id_col_name}) AS n_total,
             COUNT(DISTINCT(T.{id_col_name})) AS n_distinct
@@ -259,8 +254,11 @@ class Worker(object):
             table_name=self.table_name,
             id_col_name=self.id_col_name,
             where_clause=where_clause,
-        ))
-        n_total, n_distinct = self.engine.execute(sql).fetchall()[0]
+        )
+        stmt = text(sql)
+        stmt = stmt.bindparams(**stmt_kwargs)
+
+        n_total, n_distinct = self.engine.execute(stmt).fetchall()[0]
         n_dupes = n_total - n_distinct
         return n_total, n_distinct, n_dupes
 

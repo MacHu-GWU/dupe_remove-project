@@ -32,6 +32,15 @@ rm_if_exists() {
 }
 
 
+# if a dir not exists, then create it and all necessary parent dir.
+mkdir_if_not_exists() {
+    if ! [ -e $1 ]; then
+        mkdir -p $1
+    fi
+}
+
+
+# exit if not exists
 ensure_not_exists() {
     if [ -e $1 ]; then
         echo "${1} already exists!"
@@ -59,6 +68,25 @@ color_light_cyan="\e[96m"
 color_white="\e[97m"
 
 
+# render text in color
+colored_text() {
+    local tmp_color=$1
+    local tmp_text=$2
+    echo "${tmp_color}${tmp_text}${color_normal}"
+}
+
+
+# render a path into green if exists, red if not exists
+colored_path() {
+    local tmp_path=$1
+    if [ -e ${tmp_path} ]; then
+        colored_text "${color_green}" "${tmp_path}"
+    else
+        colored_text "${color_red}" "${tmp_path}"
+    fi
+}
+
+
 # print a line with color
 # usage:
 #
@@ -66,15 +94,19 @@ color_white="\e[97m"
 print_colored_line() {
     local tmp_color=$1
     local tmp_text=$2
-    printf -- "${tmp_color}${tmp_text}${color_normal}\n"
+    printf -- "$(colored_text "${tmp_color}" "${tmp_text}")\n"
 }
 
+
 # print title, and description, title is colored
+#
+# - <title>: <description>
+#
 # usage:
 #   print_colored_line $color_red "GitHub Url" "www.github.com"
 print_colored_ref_line() {
     local tmp_title_color=$1
     local tmp_title=$2
     local tmp_description=$3
-    printf -- "- ${tmp_title_color}${tmp_title}${color_normal}: ${tmp_description}\n"
+    printf -- "- $(colored_text "${tmp_title_color}" "${tmp_title}"): "${tmp_description}"\n"
 }

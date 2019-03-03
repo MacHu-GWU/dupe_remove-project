@@ -97,6 +97,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# serverless
+.serverless/
+
 # =========================
 # Operating System Files
 # =========================

@@ -1,5 +1,7 @@
 six
 attrs
 sqlalchemy
-psycopg2-binary
 sqlalchemy-redshift
+psycopg2-binary
+loggerFactory==0.0.5
+sqlalchemy_mate==0.0.6

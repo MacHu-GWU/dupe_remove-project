@@ -8,6 +8,8 @@ omit =
     dupe_remove/docs/*
     dupe_remove/tests/*
     dupe_remove/handlers/*
+    dupe_remove/handler.py
+    dupe_remove/logger.py
 
 [report]
 # Regexes for lines to exclude from consideration
