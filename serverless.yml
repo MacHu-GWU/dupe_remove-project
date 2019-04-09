@@ -5,6 +5,9 @@
 service:
   name: dupe-remove-demo
 
+custom:
+  aws_account_id: ${env:DEMO_DUPE_REMOVE_AWS_ACCOUNT_ID}
+
 provider:
   name: aws
   runtime: python3.6
@@ -16,7 +19,7 @@ provider:
   deploymentBucket:
     name: login.gov-dev-sanhe
   deploymentPrefix: serverless
-  role: arn:aws:iam::894947205914:role/lambda-s3-redshift-full-access
+  role: arn:aws:iam::${self:custom:aws_account_id}:role/lambda-s3-redshift-full-access
   versionFunctions: false
 
 package:
@@ -26,9 +29,9 @@ functions:
   postgres:
     handler: dupe_remove.handlers.postgres.handler
     layers:
-      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:2
+      - arn:aws:lambda:us-west-2:${self:custom:aws_account_id}:layer:dupe_remove:2
 
   redshift:
     handler: dupe_remove.handlers.redshift.handler
     layers:
-      - arn:aws:lambda:us-west-2:894947205914:layer:dupe_remove:2
+      - arn:aws:lambda:us-west-2:${self:custom:aws_account_id}:layer:dupe_remove:2

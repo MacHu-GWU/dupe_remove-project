@@ -8,6 +8,8 @@ Release and Version History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 **Features and Improvements**
 
+- allow multiple worker working together
+
 **Minor Improvements**
 
 **Bugfixes**
@@ -15,7 +17,7 @@ Release and Version History
 **Miscellaneous**
 
 
-0.0.1 (2019-02-26)
+0.0.1 (2019-03-11)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - First release

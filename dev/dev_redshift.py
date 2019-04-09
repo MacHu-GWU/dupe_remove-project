@@ -16,8 +16,8 @@ from dupe_remove.tests.with_redshift import create_test_data
 def step1_create_test_data():
     start = datetime(2018, 1, 1)
     n_month = 12
-    n_rows_each_month = 1000000
-    dupe_perc = 0.3
+    n_rows_each_month = 10000000
+    dupe_perc = 0.1
 
     aws_profile = "identitysandbox.gov"
     bucket_name = "login.gov-dev-sanhe"

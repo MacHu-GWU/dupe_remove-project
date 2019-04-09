@@ -36,10 +36,10 @@ def create_test_data(id_col_name,
             hour=0, minute=0, second=0,
         )
         df = pd.DataFrame()
-        df[id_col_name] = [uuid.uuid4() for _ in range(n_rows_each_month)]
+        start_time_prefix = str(start_time.date()) + "-"
+        df[id_col_name] = [start_time_prefix + str(i) for i in range(n_rows_each_month)]
         df[sort_col_name] = pd.date_range(start_time, end_time, n_rows_each_month)
         df = pd.concat([df, df.sample(frac=dupe_perc)], axis=0)
-
         key = "redshift-data/{}.csv.gz".format(start_time.date())
         s3df.df = df
         print("writing %s ..." % key)
